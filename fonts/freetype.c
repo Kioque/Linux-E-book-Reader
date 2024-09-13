@@ -68,8 +68,7 @@ static int FreeTypeGetFontBitmap(unsigned int dwCode, PT_FontBitMap ptFontBitMap
 #endif
 
 	/* load glyph image into the slot (erase previous one) */
-	//iError = FT_Load_Char(g_tFace, dwCode, FT_LOAD_RENDER );
-	iError = FT_Load_Char(g_tFace, dwCode, FT_LOAD_RENDER | FT_LOAD_MONOCHROME);
+	iError = FT_Load_Char(g_tFace, dwCode, FT_LOAD_RENDER );
 	if (iError)
 	{
 		DBG_PRINTF("FT_Load_Char error for code : 0x%x\n", dwCode);
@@ -81,8 +80,7 @@ static int FreeTypeGetFontBitmap(unsigned int dwCode, PT_FontBitMap ptFontBitMap
 	ptFontBitMap->iYTop     = iPenY - g_tSlot->bitmap_top;
 	ptFontBitMap->iXMax     = ptFontBitMap->iXLeft + g_tSlot->bitmap.width;
 	ptFontBitMap->iYMax     = ptFontBitMap->iYTop  + g_tSlot->bitmap.rows;
-	ptFontBitMap->iBpp      = 1;
-	ptFontBitMap->iPitch    = g_tSlot->bitmap.pitch;
+	ptFontBitMap->iBpp      = 8;
 	ptFontBitMap->pucBuffer = g_tSlot->bitmap.buffer;
 	
 	ptFontBitMap->iNextOriginX = iPenX + g_tSlot->advance.x / 64;

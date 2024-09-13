@@ -75,7 +75,7 @@ static int Utf8GetCodeFrmBuf(unsigned char *pucBufStart, unsigned char *pucBufEn
 	ucVal = pucBufStart[0];
 	iNum  = GetPreOneBits(pucBufStart[0]);
 
-	if ((pucBufStart + iNum) > pucBufEnd)
+	if ((pucBufStart + iNum) >= pucBufEnd)
 	{
 		/* ÎÄ¼þ½áÊø */
 		return 0;
@@ -105,8 +105,8 @@ static int Utf8GetCodeFrmBuf(unsigned char *pucBufStart, unsigned char *pucBufEn
 
 int  Utf8EncodingInit(void)
 {
-	AddFontOprForEncoding(&g_tUtf8EncodingOpr, GetFontOpr("freetype"));
-	AddFontOprForEncoding(&g_tUtf8EncodingOpr, GetFontOpr("ascii"));
+	g_tUtf8EncodingOpr.aptFontOprSupported[0] = GetFontOpr("freetype");
+	g_tUtf8EncodingOpr.aptFontOprSupported[1] = NULL;	
 	return RegisterEncodingOpr(&g_tUtf8EncodingOpr);
 }
 

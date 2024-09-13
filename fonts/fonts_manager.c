@@ -2,55 +2,74 @@
 #include <fonts_manager.h>
 #include <string.h>
 
-static PT_FontOpr g_ptFontOprHead = NULL;
+static PT_FontOpr g_aptFontOprs[FONT_OPR_NUM];
+static int g_iFontOprUsing;
 
 int RegisterFontOpr(PT_FontOpr ptFontOpr)
 {
-	PT_FontOpr ptTmp;
+	int i;
 
-	if (!g_ptFontOprHead)
+	for (i = 0; i < FONT_OPR_NUM; i++)
 	{
-		g_ptFontOprHead   = ptFontOpr;
-		ptFontOpr->ptNext = NULL;
+		if (NULL == g_aptFontOprs[i])
+		{
+			break;
+		}
+	}
+
+	if (i == FONT_OPR_NUM)
+	{
+		DBG_PRINTF("can't RegisterFontOpr, it is full\n");
+		return -1;
 	}
 	else
 	{
-		ptTmp = g_ptFontOprHead;
-		while (ptTmp->ptNext)
-		{
-			ptTmp = ptTmp->ptNext;
-		}
-		ptTmp->ptNext     = ptFontOpr;
-		ptFontOpr->ptNext = NULL;
+		g_aptFontOprs[i] = ptFontOpr;
 	}
-
+	
 	return 0;
 }
 
 
 void ShowFontOpr(void)
 {
-	int i = 0;
-	PT_FontOpr ptTmp = g_ptFontOprHead;
-
-	while (ptTmp)
+	int i;
+	
+	for (i = 0; i < FONT_OPR_NUM; i++)
 	{
-		printf("%02d %s\n", i++, ptTmp->name);
-		ptTmp = ptTmp->ptNext;
+		if (g_aptFontOprs[i])
+		{
+			printf("%02d %s\n", i, g_aptFontOprs[i]->name);
+		}
 	}
+}
+
+int SelectFontOpr(char *pcName)
+{
+	int i;
+
+	g_iFontOprUsing = -1;
+	for (i = 0; i < FONT_OPR_NUM; i++)
+	{
+		if (g_aptFontOprs[i] && (strcmp(g_aptFontOprs[i]->name, pcName) == 0))
+		{
+			g_iFontOprUsing = i;
+			return 0;
+		}
+	}
+	return -1;
 }
 
 PT_FontOpr GetFontOpr(char *pcName)
 {
-	PT_FontOpr ptTmp = g_ptFontOprHead;
-	
-	while (ptTmp)
+	int i;
+
+	for (i = 0; i < FONT_OPR_NUM; i++)
 	{
-		if (strcmp(ptTmp->name, pcName) == 0)
+		if (g_aptFontOprs[i] && (strcmp(g_aptFontOprs[i]->name, pcName) == 0))
 		{
-			return ptTmp;
+			return g_aptFontOprs[i];
 		}
-		ptTmp = ptTmp->ptNext;
 	}
 	return NULL;
 }

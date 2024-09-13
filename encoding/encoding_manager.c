@@ -1,127 +1,75 @@
 #include <config.h>
 #include <encoding_manager.h>
 #include <string.h>
-#include <stdlib.h>
 
-static PT_EncodingOpr g_ptEncodingOprHead;
+static PT_EncodingOpr g_aptEncodingOpr[ENCODING_OPR_NUM];
+static int g_iEncodingOprUsing;
 
 int RegisterEncodingOpr(PT_EncodingOpr ptEncodingOpr)
 {
-	PT_EncodingOpr ptTmp;
+	int i;
 
-	if (!g_ptEncodingOprHead)
+	for (i = 0; i < ENCODING_OPR_NUM; i++)
 	{
-		g_ptEncodingOprHead   = ptEncodingOpr;
-		ptEncodingOpr->ptNext = NULL;
+		if (NULL == g_aptEncodingOpr[i])
+		{
+			break;
+		}
+	}
+
+	if (i == ENCODING_OPR_NUM)
+	{
+		DBG_PRINTF("can't RegisterEncodingOpr, it is full\n");
+		return -1;
 	}
 	else
 	{
-		ptTmp = g_ptEncodingOprHead;
-		while (ptTmp->ptNext)
-		{
-			ptTmp = ptTmp->ptNext;
-		}
-		ptTmp->ptNext	      = ptEncodingOpr;
-		ptEncodingOpr->ptNext = NULL;
+		g_aptEncodingOpr[i] = ptEncodingOpr;
 	}
-
+	
 	return 0;
 }
 
 
-
 void ShowEncodingOpr(void)
 {
-	int i = 0;
-	PT_EncodingOpr ptTmp = g_ptEncodingOprHead;
-
-	while (ptTmp)
+	int i;
+	
+	for (i = 0; i < ENCODING_OPR_NUM; i++)
 	{
-		printf("%02d %s\n", i++, ptTmp->name);
-		ptTmp = ptTmp->ptNext;
+		if (g_aptEncodingOpr[i])
+		{
+			printf("%02d %s\n", i, g_aptEncodingOpr[i]->name);
+		}
 	}
+}
+
+int SelectEncodingOpr(char *name)
+{
+	int i;
+
+	g_iEncodingOprUsing = -1;
+	for (i = 0; i < ENCODING_OPR_NUM; i++)
+	{
+		if (g_aptEncodingOpr[i] && (strcmp(g_aptEncodingOpr[i]->name, name) == 0))
+		{
+			g_iEncodingOprUsing = i;
+			return 0;
+		}
+	}
+	return -1;
 }
 
 PT_EncodingOpr SelectEncodingOprForFile(unsigned char *pucFileBufHead)
 {
-	PT_EncodingOpr ptTmp = g_ptEncodingOprHead;
-
-	while (ptTmp)
-	{	
-		if (ptTmp->isSupport(pucFileBufHead))
-			return ptTmp;
-		else
-			ptTmp = ptTmp->ptNext;
+	int i;
+	
+	for (i = 0; i < ENCODING_OPR_NUM; i++)
+	{
+		if (g_aptEncodingOpr[i] && g_aptEncodingOpr[i]->isSupport(pucFileBufHead))
+			return g_aptEncodingOpr[i];
 	}
 	return NULL;
-}
-
-
-int AddFontOprForEncoding(PT_EncodingOpr ptEncodingOpr, PT_FontOpr ptFontOpr)
-{
-	PT_FontOpr ptFontOprCpy;
-	
-	if (!ptEncodingOpr || !ptFontOpr)
-	{
-		return -1;
-	}
-	else
-	{
-		ptFontOprCpy = malloc(sizeof(T_FontOpr));
-		if (!ptFontOprCpy)
-		{
-			return -1;
-		}
-		else
-		{
-			memcpy(ptFontOprCpy, ptFontOpr, sizeof(T_FontOpr));
-			ptFontOprCpy->ptNext = ptEncodingOpr->ptFontOprSupportedHead;
-			ptEncodingOpr->ptFontOprSupportedHead = ptFontOprCpy;
-			return 0;
-		}		
-	}
-}
-
-int DelFontOprFrmEncoding(PT_EncodingOpr ptEncodingOpr, PT_FontOpr ptFontOpr)
-{
-	PT_FontOpr ptTmp;
-	PT_FontOpr ptPre;
-		
-	if (!ptEncodingOpr || !ptFontOpr)
-	{
-		return -1;
-	}
-	else
-	{
-		ptTmp = ptEncodingOpr->ptFontOprSupportedHead;
-		if (strcmp(ptTmp->name, ptFontOpr->name) == 0)
-		{
-			/* 删除头节点 */
-			ptEncodingOpr->ptFontOprSupportedHead = ptTmp->ptNext;
-			free(ptTmp);
-			return 0;
-		}
-
-		ptPre = ptEncodingOpr->ptFontOprSupportedHead;
-		ptTmp = ptPre->ptNext;
-		while (ptTmp)
-		{
-			if (strcmp(ptTmp->name, ptFontOpr->name) == 0)
-			{
-				/* 从链表里取出、释放 */
-				ptPre->ptNext = ptTmp->ptNext;
-				free(ptTmp);
-				return 0;
-			}
-			else
-			{
-				ptPre = ptTmp;
-				ptTmp = ptTmp->ptNext;
-			}
-		}
-
-		return -1;
-	}
 }
 
 int EncodingInit(void)

@@ -18,26 +18,16 @@ int main(int argc, char **argv)
 	char acFreetypeFile[128];
 	char acTextFile[128];
 
-	char acDisplay[128];
-
 	char cOpr;
-	int bList = 0;
 
 	acHzkFile[0]  = '\0';
 	acFreetypeFile[0] = '\0';
 	acTextFile[0] = '\0';
-
-	strcpy(acDisplay, "fb");
 	
-	while ((iError = getopt(argc, argv, "ls:f:h:d:")) != -1)
+	while ((iError = getopt(argc, argv, "s:f:h:")) != -1)
 	{
 		switch(iError)
 		{
-			case 'l':
-			{
-				  bList = 1;
-				  break;
-			}
 			case 's':
 			{
 				  dwFontSize = strtoul(optarg, NULL, 0);
@@ -48,102 +38,77 @@ int main(int argc, char **argv)
 				  strncpy(acFreetypeFile, optarg, 128);
 				  acFreetypeFile[127] = '\0';
 				  break;
-			}			
+			}
 			case 'h':
 			{
 					strncpy(acHzkFile, optarg, 128);
 					acHzkFile[127] = '\0';
 					break;
 			}
-			case 'd':
-			{
-				strncpy(acDisplay, optarg, 128);
-				acDisplay[127] = '\0';
-				break;
-			}
 			default:
 			{
-					printf("Usage: %s [-s Size] [-d display] [-f font_file] [-h HZK] <text_file>\n", argv[0]);
-					printf("Usage: %s -l\n", argv[0]);
-					return -1;
-					break;
+				  printf("Usage: %s [-s Size] [-f font_file] [-h HZK] <text_file>\n", argv[0]);
+				  return -1;
+				  break;
 			}
 		}
 	}
 
-	if (!bList && (optind >= argc))
+	if (optind >= argc)
 	{
-		printf("Usage: %s [-s Size] [-d display] [-f font_file] [-h HZK] <text_file>\n", argv[0]);
-		printf("Usage: %s -l\n", argv[0]);
+		printf("Usage: %s [-s Size] [-f font_file] [-h HZK] <text_file>\n", argv[0]);
 		return -1;
 	}
+
+	strncpy(acTextFile, argv[optind], 128);
+	acTextFile[127] = '\0';
 		
 	iError = DisplayInit();
 	if (iError)
 	{
-		printf("DisplayInit error!\n");
+		DBG_PRINTF("DisplayInit error!\n");
 		return -1;
 	}
 
 	iError = FontsInit();
 	if (iError)
 	{
-		printf("FontsInit error!\n");
+		DBG_PRINTF("FontsInit error!\n");
 		return -1;
 	}
 
 	iError = EncodingInit();
 	if (iError)
 	{
-		printf("EncodingInit error!\n");
+		DBG_PRINTF("EncodingInit error!\n");
 		return -1;
 	}
-
-	if (bList)
-	{
-		printf("supported display:\n");
-		ShowDispOpr();
-
-		printf("supported font:\n");
-		ShowFontOpr();
-
-		printf("supported encoding:\n");
-		ShowEncodingOpr();
-		return 0;
-	}
-
-	strncpy(acTextFile, argv[optind], 128);
-	acTextFile[127] = '\0';
 		
 	iError = OpenTextFile(acTextFile);
 	if (iError)
 	{
-		printf("OpenTextFile error!\n");
+		DBG_PRINTF("OpenTextFile error!\n");
 		return -1;
 	}
 
 	iError = SetTextDetail(acHzkFile, acFreetypeFile, dwFontSize);
 	if (iError)
 	{
-		printf("SetTextDetail error!\n");
+		DBG_PRINTF("SetTextDetail error!\n");
 		return -1;
 	}
 
-	DBG_PRINTF("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
-
-	iError = SelectAndInitDisplay(acDisplay);
+	iError = SelectAndInitDisplay("fb");
 	if (iError)
 	{
-		printf("SelectAndInitDisplay error!\n");
+		DBG_PRINTF("SelectAndInitDisplay error!\n");
 		return -1;
 	}
 	
-	DBG_PRINTF("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
 	iError = ShowNextPage();
-	DBG_PRINTF("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
 	if (iError)
 	{
-		printf("Error to show first page\n");
+		DBG_PRINTF("Error to show first page\n");
 		return -1;
 	}
 
